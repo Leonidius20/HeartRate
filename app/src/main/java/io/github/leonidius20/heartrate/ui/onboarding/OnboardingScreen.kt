@@ -1,13 +1,16 @@
 package io.github.leonidius20.heartrate.ui.onboarding
 
-import android.widget.Space
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
@@ -16,28 +19,33 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.leonidius20.heartrate.R
 import io.github.leonidius20.heartrate.ui.theme.bgCircleColor
 import io.github.leonidius20.heartrate.ui.theme.btnColor
-import io.github.leonidius20.heartrate.R
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.painter.Painter
 import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.lerp as colorLerp
+import androidx.compose.ui.unit.lerp as dpLerp
 
 @Composable
 @Preview(widthDp = 393, heightDp = 852)
 fun OnboardingScreen() {
     Column {
-        val pagerState = rememberPagerState(pageCount = { 3 })
+        val pageCount = 3
+
+        val pagerState = rememberPagerState(pageCount = { pageCount })
 
         BoxWithConstraints(
             Modifier.weight(1f),
@@ -79,6 +87,19 @@ fun OnboardingScreen() {
         //}
 
         val scope = rememberCoroutineScope()
+
+        // Row of page indicators
+        Row(Modifier
+            .align(Alignment.CenterHorizontally)
+            .padding(top = 16.dp, bottom = 16.dp)
+        ) {
+            val currentPage = pagerState.currentPage
+
+            repeat(pageCount) { pageIndex ->
+                val progress = if (pageIndex == currentPage) 1.0F else 0.0F
+                PageIndicator(progressToActive = progress)
+            }
+        }
 
         Button(
             modifier = Modifier.fillMaxWidth(),
@@ -148,5 +169,44 @@ private fun OnboardingPageTwo() {
 private fun OnboardingPageThree() {
     Column {
 
+    }
+}
+
+@Composable
+@Preview
+private fun PageIndicator(
+    /**
+     * from 0.0 to 1.0, how close should this indicator be to the active state
+     */
+    progressToActive: Float = 0.0F,
+) {
+    val defaultWidth = 14.dp // width if not activated
+    val maxWidth = 44.dp // when active
+
+    val height = 14.dp
+
+    val inactiveColor = Color(0xFFE6E6E6)
+    val activeColor = Color(0xFFFF6B6B)
+
+    val color = colorLerp(inactiveColor, activeColor, progressToActive)
+    val width = dpLerp(defaultWidth, maxWidth, progressToActive)
+
+    Canvas(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+            .padding(start = 8.dp, end = 8.dp)
+    ) {
+        drawRoundRect(
+            color = color,
+            size = Size(
+                width = width.toPx(),
+                height = height.toPx(),
+            ),
+            cornerRadius = CornerRadius(
+                x = defaultWidth.toPx(),
+                y = height.toPx(),
+            )
+        )
     }
 }
