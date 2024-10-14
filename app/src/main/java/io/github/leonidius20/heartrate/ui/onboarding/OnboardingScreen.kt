@@ -36,6 +36,7 @@ import io.github.leonidius20.heartrate.R
 import io.github.leonidius20.heartrate.ui.theme.bgCircleColor
 import io.github.leonidius20.heartrate.ui.theme.btnColor
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import androidx.compose.ui.graphics.lerp as colorLerp
 import androidx.compose.ui.unit.lerp as dpLerp
 
@@ -94,10 +95,25 @@ fun OnboardingScreen() {
             .padding(top = 16.dp, bottom = 16.dp)
         ) {
             val currentPage = pagerState.currentPage
+            val offsetFromCurrent = pagerState.currentPageOffsetFraction
+
+            val currentPageProgress = 1 - abs(offsetFromCurrent)
+            val prevPageProgress = if (offsetFromCurrent < 0)
+                abs(offsetFromCurrent) else 0F
+            val nextPageProgress = if (offsetFromCurrent > 0)
+                offsetFromCurrent else 0F
 
             repeat(pageCount) { pageIndex ->
-                val progress = if (pageIndex == currentPage) 1.0F else 0.0F
+                val progress = when(pageIndex) {
+                    currentPage -> currentPageProgress
+                    currentPage - 1 -> prevPageProgress
+                    currentPage + 1 -> nextPageProgress
+                    else -> 0F
+                }
                 PageIndicator(progressToActive = progress)
+                if (pageIndex < pageCount - 1) {
+                    Spacer(Modifier.width(16.dp))
+                }
             }
         }
 
@@ -195,7 +211,7 @@ private fun PageIndicator(
         modifier = Modifier
             .width(width)
             .height(height)
-            .padding(start = 8.dp, end = 8.dp)
+            // .padding(start = 32.dp, end = 32.dp)
     ) {
         drawRoundRect(
             color = color,
