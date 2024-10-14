@@ -1,5 +1,6 @@
 package io.github.leonidius20.heartrate.ui.onboarding
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
@@ -26,15 +28,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.leonidius20.heartrate.R
 import io.github.leonidius20.heartrate.ui.theme.bgCircleColor
 import io.github.leonidius20.heartrate.ui.theme.btnColor
+import io.github.leonidius20.heartrate.ui.theme.onboardingDescription
+import io.github.leonidius20.heartrate.ui.theme.onboardingTitle
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import androidx.compose.ui.graphics.lerp as colorLerp
@@ -43,7 +51,16 @@ import androidx.compose.ui.unit.lerp as dpLerp
 @Composable
 @Preview(widthDp = 393, heightDp = 852)
 fun OnboardingScreen() {
-    Column {
+    Column(
+        Modifier.drawBehind {
+            drawLine(
+                color = Color.Black,
+                start = center.copy(y = 0f),
+                end = center.copy(y = size.height),
+                strokeWidth = 1.dp.toPx(),
+            )
+        }
+    ) {
         val pageCount = 3
 
         val pagerState = rememberPagerState(pageCount = { pageCount })
@@ -57,7 +74,7 @@ fun OnboardingScreen() {
                 modifier = Modifier
                     .fillMaxSize()
                     .drawBehind {
-                        // todo: better values
+                        // todo: better values esp. in horizontal mode
                         val centerUpwardOffset = 100.dp.toPx()
 
                         drawCircle(
@@ -155,12 +172,15 @@ private fun OnboardingPage(
         )
         Spacer(Modifier.height(100.dp))
         Text(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = onboardingTitle,
         )
         Text(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
             text = description,
-            style = MaterialTheme.typography.bodyLarge,
+            style = onboardingDescription,
+            // textAlign = TextAlign.Center,
         )
     }
 }
@@ -207,8 +227,11 @@ private fun PageIndicator(
     val color = colorLerp(inactiveColor, activeColor, progressToActive)
     val width = dpLerp(defaultWidth, maxWidth, progressToActive)
 
+    // todo: fix recompositions
+    // todo: make sure the center pill is in the center
     Canvas(
         modifier = Modifier
+
             .width(width)
             .height(height)
             // .padding(start = 32.dp, end = 32.dp)
