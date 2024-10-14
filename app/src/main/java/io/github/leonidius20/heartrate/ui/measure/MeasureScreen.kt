@@ -33,25 +33,44 @@ fun MeasureScreen() {
         )
 
         if (cameraPermission.status.isGranted) {
-            var fingerDetected by remember { mutableStateOf(false) }
+            val fingerDetected = remember { mutableStateOf(false) }
 
-            val heartMeter by rememberHeartRateMeter(
-                surfaceView,
-                onFingerDetectionChange = { isDetected ->
-                    fingerDetected = isDetected
-                })
+
+
+            // todo: remember {} this
+            val heartRate = HeartRateOmeter()
+                .withAverageAfterSeconds(3)
+                .setFingerDetectionListener { detected ->
+
+                }
+                .bpmUpdates(surfaceView)
+                /*.subscribe {
+                    if (it.value == 0)
+                        return@subscribe
+
+                    m.set(0, 0, it.value.toDouble())
+
+                    // state [x, dx]
+                    val s = kalman.Predict()
+
+                    // corrected state [x, dx]
+                    val c = kalman.Correct(m)
+
+                    val bpm = it.copy(value = c.get(0, 0).toInt())
+                    // Log.v("HeartRateOmeter", "[onBpm] ${it.value} => ${bpm.value}")
+                    onBpm(bpm)
+                }*/
+                .subscribeAsState(
+                    initial = HeartRateOmeter.Bpm(value = -1, type = HeartRateOmeter.PulseType.OFF)
+                )
 
             AndroidView(
                 modifier = Modifier.height(100.dp),
                 factory = { surfaceView }
             )
 
-            if (!fingerDetected) {
-                Text("NO FINGER DETECTED")
-            }
-
             Text(
-                text = "${heartMeter} BPM"
+                text = "${heartRate.value} BPM"
             )
         } else {
             val textToShow = if (cameraPermission.status.shouldShowRationale) {
@@ -79,22 +98,7 @@ private fun rememberSurfaceView(): SurfaceView {
     val context = LocalContext.current
     return remember {
         SurfaceView(
-            context
+           context
         )
     }
-}
-
-@Composable
-private fun rememberHeartRateMeter(
-    surfaceView: SurfaceView,
-    onFingerDetectionChange: (detected: Boolean) -> Unit,
-): State<HeartRateOmeter.Bpm> {
-    return HeartRateOmeter()
-        .setFingerDetectionListener { detected ->
-            onFingerDetectionChange(detected)
-        }
-        .bpmUpdates(surfaceView)
-        .subscribeAsState(
-            initial = HeartRateOmeter.Bpm(value = -1, type = HeartRateOmeter.PulseType.OFF)
-        )
 }

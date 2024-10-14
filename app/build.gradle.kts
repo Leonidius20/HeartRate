@@ -49,6 +49,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(libs.heartRateOMeter)
+    implementation("com.github.kibotu:KalmanRx:2.0.0")
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.material3)
@@ -61,4 +62,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-rxjava2")
 
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 }
