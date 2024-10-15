@@ -1,11 +1,13 @@
 package io.github.leonidius20.heartrate.ui.measure
 
 import android.view.SurfaceView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -27,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -38,6 +41,9 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import io.github.leonidius20.heartrate.ui.common.BoxWithCircleBackground
 import net.kibotu.heartrateometer.HeartRateOmeter
+import io.github.leonidius20.heartrate.R
+import io.github.leonidius20.heartrate.ui.theme.heartRateTextStyle
+import io.github.leonidius20.heartrate.ui.theme.onboardingDescription
 
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -72,7 +78,6 @@ fun MeasureScreen(
                 var fingerDetected by remember { mutableStateOf(false) }
 
 
-
                 // todo: remember {} this
                 val meter = remember {
                     HeartRateOmeter()
@@ -83,7 +88,7 @@ fun MeasureScreen(
                         .bpmUpdates(surfaceView)
                 }
 
-                val heartRate = meter
+                val heartRate by meter
                     /*.subscribe {
                         if (it.value == 0)
                             return@subscribe
@@ -101,7 +106,10 @@ fun MeasureScreen(
                         onBpm(bpm)
                     }*/
                     .subscribeAsState(
-                        initial = HeartRateOmeter.Bpm(value = -1, type = HeartRateOmeter.PulseType.OFF)
+                        initial = HeartRateOmeter.Bpm(
+                            value = -1,
+                            type = HeartRateOmeter.PulseType.OFF
+                        )
                     )
 
                 AndroidView(
@@ -119,9 +127,15 @@ fun MeasureScreen(
                     text = fingerDetectionText,
                 )
 
-                Text(
-                    text = "${heartRate.value} BPM"
+                val heartRateStr = if (heartRate.value < 1)
+                    "--"
+                else heartRate.value.toString()
+
+                Heart(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    bpm = heartRateStr
                 )
+
             } else {
                 val textToShow = if (cameraPermission.status.shouldShowRationale) {
                     // If the user has denied the permission but the rationale can be shown,
@@ -153,7 +167,7 @@ private fun rememberSurfaceView(
 
     return remember {
         SurfaceView(
-           context
+            context
         ).apply {
             holder.setFixedSize(widthPx, heightPx)
         }
@@ -162,3 +176,36 @@ private fun rememberSurfaceView(
 
 @Composable
 fun Dp.dpToPx() = with(LocalDensity.current) { this@dpToPx.toPx() }
+
+@Composable
+@Preview
+private fun Heart(
+    modifier: Modifier = Modifier,
+    bpm: String = "--",
+) {
+    Box(modifier) {
+        Image(
+            painterResource(R.drawable.heart),
+            contentDescription = null,
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .align(Alignment.CenterHorizontally),
+                text = bpm,
+                style = heartRateTextStyle,
+            )
+            Text(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                text = "bpm",
+                style = onboardingDescription,
+                color = Color.White,
+            )
+        }
+
+    }
+}

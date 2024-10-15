@@ -1,6 +1,7 @@
 package io.github.leonidius20.heartrate.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -39,6 +40,7 @@ val Typography = Typography(
 val rubik = FontFamily(
     Font(R.font.rubik_regular, FontWeight.Normal),
     Font(R.font.rubik_semi_bold, FontWeight.SemiBold),
+    Font(R.font.rubik_bold, FontWeight.Bold),
 )
 
 val onboardingTitle = TextStyle(
@@ -53,4 +55,12 @@ val onboardingDescription = TextStyle(
     fontWeight = FontWeight.Normal,
     fontSize = 22.sp,
     textAlign = TextAlign.Center,
+)
+
+val heartRateTextStyle = TextStyle(
+    fontFamily = rubik,
+    fontWeight = FontWeight.Bold,
+    fontSize = 62.sp,
+    textAlign = TextAlign.Center,
+    color = Color.White,
 )
