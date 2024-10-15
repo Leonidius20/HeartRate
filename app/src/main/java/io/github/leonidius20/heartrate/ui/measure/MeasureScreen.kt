@@ -38,12 +38,16 @@ fun MeasureScreen() {
 
 
             // todo: remember {} this
-            val heartRate = HeartRateOmeter()
-                .withAverageAfterSeconds(3)
-                .setFingerDetectionListener { detected ->
+            val meter = remember {
+                HeartRateOmeter()
+                    .withAverageAfterSeconds(3)
+                    .setFingerDetectionListener { detected ->
 
-                }
-                .bpmUpdates(surfaceView)
+                    }
+                    .bpmUpdates(surfaceView)
+            }
+
+            val heartRate = meter
                 /*.subscribe {
                     if (it.value == 0)
                         return@subscribe

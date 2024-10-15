@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -62,7 +63,6 @@ fun OnboardingScreen() {
         }
     ) {
         val pageCount = 3
-
         val pagerState = rememberPagerState(pageCount = { pageCount })
 
         BoxWithConstraints(
@@ -93,6 +93,41 @@ fun OnboardingScreen() {
             }
         }
 
+        Row(
+            Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 16.dp, bottom = 16.dp)
+        ) {
+            val progressToActive = { pageIndex: Int ->
+                val currentPage = pagerState.currentPage
+                val offsetFromCurrent = pagerState.currentPageOffsetFraction
+
+                when (pageIndex) {
+                    currentPage -> 1 - abs(offsetFromCurrent)
+                    currentPage - 1 ->
+                        if (offsetFromCurrent < 0)
+                            abs(offsetFromCurrent)
+                        else
+                            0F
+
+                    currentPage + 1 ->
+                        if (offsetFromCurrent > 0)
+                            offsetFromCurrent
+                        else
+                            0F
+
+                    else -> 0F
+                }
+            }
+
+            repeat(pageCount) { pageIndex ->
+                PageIndicator(progressToActive = { progressToActive(pageIndex) })
+                if (pageIndex < pageCount - 1) {
+                    Spacer(Modifier.width(16.dp))
+                }
+            }
+        }
+
         val isOnFirstOrLastPage by remember {
             derivedStateOf {
                 pagerState.currentPage == 0
@@ -100,39 +135,7 @@ fun OnboardingScreen() {
             }
         }
 
-        //val freshCurrentPageValue = rememberUpdatedState {
-        //    pagerState
-        //}
-
         val scope = rememberCoroutineScope()
-
-        // Row of page indicators
-        Row(Modifier
-            .align(Alignment.CenterHorizontally)
-            .padding(top = 16.dp, bottom = 16.dp)
-        ) {
-            val currentPage = pagerState.currentPage
-            val offsetFromCurrent = pagerState.currentPageOffsetFraction
-
-            val currentPageProgress = 1 - abs(offsetFromCurrent)
-            val prevPageProgress = if (offsetFromCurrent < 0)
-                abs(offsetFromCurrent) else 0F
-            val nextPageProgress = if (offsetFromCurrent > 0)
-                offsetFromCurrent else 0F
-
-            repeat(pageCount) { pageIndex ->
-                val progress = when(pageIndex) {
-                    currentPage -> currentPageProgress
-                    currentPage - 1 -> prevPageProgress
-                    currentPage + 1 -> nextPageProgress
-                    else -> 0F
-                }
-                PageIndicator(progressToActive = progress)
-                if (pageIndex < pageCount - 1) {
-                    Spacer(Modifier.width(16.dp))
-                }
-            }
-        }
 
         Button(
             modifier = Modifier.fillMaxWidth(),
@@ -145,8 +148,6 @@ fun OnboardingScreen() {
                 } else {
                     // navigate
                 }
-
-
             }
         ) {
             val text = if (isOnFirstOrLastPage) "Start" else "Continue"
@@ -214,7 +215,7 @@ private fun PageIndicator(
     /**
      * from 0.0 to 1.0, how close should this indicator be to the active state
      */
-    progressToActive: Float = 0.0F,
+    progressToActive: () -> Float = { 0f },
 ) {
     val defaultWidth = 14.dp // width if not activated
     val maxWidth = 44.dp // when active
@@ -224,17 +225,22 @@ private fun PageIndicator(
     val inactiveColor = Color(0xFFE6E6E6)
     val activeColor = Color(0xFFFF6B6B)
 
-    val color = colorLerp(inactiveColor, activeColor, progressToActive)
-    val width = dpLerp(defaultWidth, maxWidth, progressToActive)
+    val progress = progressToActive()
+    val color = colorLerp(inactiveColor, activeColor, progress)
+    val width = dpLerp(defaultWidth, maxWidth, progress)
 
-    // todo: fix recompositions
-    // todo: make sure the center pill is in the center
+    // todo: make sure the center pill is in the center while not introducing redundant recompositions
     Canvas(
         modifier = Modifier
-
-            .width(width)
-            .height(height)
-            // .padding(start = 32.dp, end = 32.dp)
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(constraints)
+                layout(width.toPx().toInt(), height.toPx().toInt()) {
+                    placeable.placeRelative(0, 0)
+                }
+            }
+        //.width(width)
+        //.height(height)
+        // .padding(start = 32.dp, end = 32.dp)
     ) {
         drawRoundRect(
             color = color,
