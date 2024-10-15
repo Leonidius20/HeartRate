@@ -7,12 +7,13 @@ import androidx.navigation.compose.rememberNavController
 import io.github.leonidius20.heartrate.ui.homepage.HomeScreen
 import io.github.leonidius20.heartrate.ui.measure.MeasureScreen
 import io.github.leonidius20.heartrate.ui.onboarding.OnboardingScreen
+import io.github.leonidius20.heartrate.ui.result.MeasurementResultScreen
 
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
 
-    // todo change start dest
+    // todo change start dest if user went through onboarding already
     NavHost(navController = navController, startDestination = "onboarding") {
         composable("onboarding") {
             OnboardingScreen(
@@ -31,8 +32,14 @@ fun NavGraph() {
             MeasureScreen(
                 backToHomePage = {
                     navController.popBackStack()
-                }
+                },
+                goToResultScreen = { measurementId ->
+                    navController.navigate("result/${measurementId}")
+                },
             )
+        }
+        composable("result/{id}") {
+            MeasurementResultScreen()
         }
     }
 }

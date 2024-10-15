@@ -36,10 +36,10 @@ class MeasureViewModel @Inject constructor(
     private fun startMeasuring() {
         _uiState.value = MeasureUiState.Measuring(progress = 0f)
         measuringTimer = viewModelScope.launch {
-            // a total of 5sec for measuring
-            repeat(5) { iteration ->
+            // a total of 10 sec for measuring
+            repeat(10) { iteration ->
                 delay(1_000)
-                _uiState.value = MeasureUiState.Measuring(progress = iteration / 4f)
+                _uiState.value = MeasureUiState.Measuring(progress = iteration / 9f)
             }
 
             val averageBpm = recordedBpmValues.average().toInt()

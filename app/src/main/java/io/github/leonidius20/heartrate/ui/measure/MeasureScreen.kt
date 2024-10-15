@@ -18,10 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rxjava2.subscribeAsState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -50,33 +49,79 @@ import net.kibotu.heartrateometer.HeartRateOmeter
 @Composable
 fun MeasureScreen(
     backToHomePage: () -> Unit = {},
+    goToResultScreen: (Int) -> Unit = {},
 ) {
     val viewModel: MeasureViewModel = hiltViewModel()
 
-    BoxWithCircleBackground {
-        Column(
-            Modifier
-                .safeDrawingPadding()
-                .fillMaxSize()
-        ) {
-            IconButton(
-                modifier = Modifier.align(Alignment.End),
-                onClick = { backToHomePage() }
-            ) {
-                Icon(Icons.Default.Close, contentDescription = "Close")
+    val cameraPermission = rememberPermissionState(
+        android.Manifest.permission.CAMERA
+    )
+
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    if (cameraPermission.status.isGranted) {
+        MeasureScreen(
+            backToHomePage = backToHomePage,
+            goToResultScreen = goToResultScreen,
+            onBpmValueRecorded = viewModel::onBpmValueRecorded,
+            onFingerDetectionChange = viewModel::onFingerDetectionChange,
+            state = state,
+        )
+    } else {
+        val textToShow = if (cameraPermission.status.shouldShowRationale) {
+            // If the user has denied the permission but the rationale can be shown,
+            // then gently explain why the app requires this permission
+            "The camera is important for this app. Please grant the permission."
+        } else {
+            // If it's the first time the user lands on this feature, or the user
+            // doesn't want to be asked again for this permission, explain that the
+            // permission is required
+            "Camera permission required for this feature to be available. " +
+                    "Please grant the permission"
+        }
+        Column {
+            Text(textToShow)
+            Button(onClick = { cameraPermission.launchPermissionRequest() }) {
+                Text("Request permission")
             }
+        }
+    }
 
-            val surfaceView = rememberSurfaceView(
-                widthPx = 42.dp.dpToPx().toInt(),
-                heightPx = 42.dp.dpToPx().toInt(),
-            )
+}
 
-            val cameraPermission = rememberPermissionState(
-                android.Manifest.permission.CAMERA
-            )
+@Composable
+private fun MeasureScreen(
+    backToHomePage: () -> Unit = {},
+    goToResultScreen: (Int) -> Unit = {},
+    onBpmValueRecorded: (Int) -> Unit = {},
+    onFingerDetectionChange: (Boolean) -> Unit = {},
+    state: MeasureUiState,
+) {
+    if (state is MeasureUiState.Completed) {
+        LaunchedEffect(Unit) {
+            goToResultScreen(state.measurementId)
+        }
+    } else {
+        BoxWithCircleBackground {
+            Column(
+                Modifier
+                    .safeDrawingPadding()
+                    .fillMaxSize()
+            ) {
+                IconButton(
+                    modifier = Modifier.align(Alignment.End),
+                    onClick = { backToHomePage() }
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = "Close")
+                }
 
-            if (cameraPermission.status.isGranted) {
-                var fingerDetected by remember { mutableStateOf(false) }
+                val surfaceView = rememberSurfaceView(
+                    widthPx = 42.dp.dpToPx().toInt(),
+                    heightPx = 42.dp.dpToPx().toInt(),
+                )
+
+
+                // var fingerDetected by remember { mutableStateOf(false) }
 
 
                 // todo: remember {} this
@@ -84,8 +129,8 @@ fun MeasureScreen(
                     HeartRateOmeter()
                         .withAverageAfterSeconds(3)
                         .setFingerDetectionListener { detected ->
-                            fingerDetected = detected
-                            viewModel.onFingerDetectionChange(detected)
+                            // fingerDetected = detected
+                            onFingerDetectionChange(detected)
                         }
                         .bpmUpdates(surfaceView)
                 }
@@ -118,7 +163,7 @@ fun MeasureScreen(
 
                 LaunchedEffect(Unit) {
                     bpmFlow.collect { value ->
-                        viewModel.onBpmValueRecorded(value)
+                        onBpmValueRecorded(value)
                     }
                 }
 
@@ -130,7 +175,10 @@ fun MeasureScreen(
                     factory = { surfaceView }
                 )
 
-                val fingerDetectionText = if (fingerDetected) "Measuring..." else "No finger"
+                val fingerDetectionText =
+                    if (state is MeasureUiState.Measuring)
+                        "Measuring..."
+                    else "No finger"
 
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -146,26 +194,10 @@ fun MeasureScreen(
                     bpm = heartRateStr
                 )
 
-            } else {
-                val textToShow = if (cameraPermission.status.shouldShowRationale) {
-                    // If the user has denied the permission but the rationale can be shown,
-                    // then gently explain why the app requires this permission
-                    "The camera is important for this app. Please grant the permission."
-                } else {
-                    // If it's the first time the user lands on this feature, or the user
-                    // doesn't want to be asked again for this permission, explain that the
-                    // permission is required
-                    "Camera permission required for this feature to be available. " +
-                            "Please grant the permission"
-                }
-                Text(textToShow)
-                Button(onClick = { cameraPermission.launchPermissionRequest() }) {
-                    Text("Request permission")
-                }
             }
-
         }
     }
+
 
 }
 
