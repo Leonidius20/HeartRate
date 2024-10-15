@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -34,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.leonidius20.heartrate.R
+import io.github.leonidius20.heartrate.ui.common.BoxWithCircleBackground
 import io.github.leonidius20.heartrate.ui.theme.bgCircleColor
 import io.github.leonidius20.heartrate.ui.theme.btnColor
 import io.github.leonidius20.heartrate.ui.theme.onboardingDescription
@@ -45,9 +47,13 @@ import androidx.compose.ui.unit.lerp as dpLerp
 
 @Composable
 @Preview(widthDp = 393, heightDp = 852)
-fun OnboardingScreen() {
+fun OnboardingScreen(
+    onNavigateToMeasurement: () -> Unit = {},
+) {
     Column(
-        Modifier.drawBehind {
+        Modifier
+            .safeDrawingPadding() // handle insets
+            .drawBehind {
             drawLine(
                 color = Color.Black,
                 start = center.copy(y = 0f),
@@ -59,24 +65,12 @@ fun OnboardingScreen() {
         val pageCount = 3
         val pagerState = rememberPagerState(pageCount = { pageCount })
 
-        BoxWithConstraints(
+        BoxWithCircleBackground (
             Modifier.weight(1f),
         ) {
-            val scope = this
-
             HorizontalPager(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .drawBehind {
-                        // todo: better values esp. in horizontal mode
-                        val centerUpwardOffset = 100.dp.toPx()
-
-                        drawCircle(
-                            color = bgCircleColor,
-                            radius = (scope.maxHeight / 2).toPx() + centerUpwardOffset, // radius = from circle center (center of pager? up to the end of pager)
-                            center = center.copy(y = center.y - centerUpwardOffset)
-                        )
-                    },
+                    .fillMaxSize(),
                 state = pagerState,
             ) { page ->
                 when (page) {
@@ -140,7 +134,7 @@ fun OnboardingScreen() {
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
                     }
                 } else {
-                    // navigate
+                    onNavigateToMeasurement()
                 }
             }
         ) {

@@ -12,3 +12,5 @@ val Pink40 = Color(0xFF7D5260)
 
 val bgCircleColor = Color(0xFFB2DEFB)
 val btnColor = Color(0xFFFF6B6B)
+
+val topBarColor = Color(0xFFFF6B6B)
