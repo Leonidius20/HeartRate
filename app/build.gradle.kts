@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kapt)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -65,4 +67,17 @@ dependencies {
 
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    kapt(libs.room.compiler)
+
+}
+
+kapt {
+    correctErrorTypes = true
 }
