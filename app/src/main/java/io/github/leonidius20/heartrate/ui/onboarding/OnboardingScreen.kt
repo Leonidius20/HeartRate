@@ -1,6 +1,5 @@
 package io.github.leonidius20.heartrate.ui.onboarding
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -11,14 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -29,14 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.leonidius20.heartrate.R
@@ -190,23 +184,27 @@ private fun OnboardingPage(
 private fun OnboardingPageOne() {
     OnboardingPage(
         imagePainter = painterResource(R.drawable.onboarding_pic_one),
-        title = "Your pressure tracker",
-        description = "Зазначайте, відстежуйте та аналізуйте свої показники артеріального тиску."
+        title = stringResource(R.string.onboarding_title_one),
+        description = stringResource(R.string.onboarding_description_one)
     )
 }
 
 @Composable
 private fun OnboardingPageTwo() {
-    Column {
-
-    }
+    OnboardingPage(
+        imagePainter = painterResource(R.drawable.onboarding_pic_two),
+        title = stringResource(R.string.onboarding_title_two),
+        description = stringResource(R.string.onboarding_description_two)
+    )
 }
 
 @Composable
 private fun OnboardingPageThree() {
-    Column {
-
-    }
+    OnboardingPage(
+        imagePainter = painterResource(R.drawable.onboarding_pic_three),
+        title = stringResource(R.string.onboarding_title_three),
+        description = stringResource(R.string.onboarding_description_three)
+    )
 }
 
 @Composable
@@ -232,15 +230,13 @@ private fun PageIndicator(
     // todo: make sure the center pill is in the center while not introducing redundant recompositions
     Canvas(
         modifier = Modifier
+            // dynamically changing width
             .layout { measurable, constraints ->
                 val placeable = measurable.measure(constraints)
                 layout(width.toPx().toInt(), height.toPx().toInt()) {
                     placeable.placeRelative(0, 0)
                 }
             }
-        //.width(width)
-        //.height(height)
-        // .padding(start = 32.dp, end = 32.dp)
     ) {
         drawRoundRect(
             color = color,
