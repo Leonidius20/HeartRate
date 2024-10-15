@@ -39,7 +39,11 @@ fun NavGraph() {
             )
         }
         composable("result/{id}") {
-            MeasurementResultScreen()
+            MeasurementResultScreen(
+                backToHomepage = {
+                    navController.popBackStack("homepage", inclusive = false)
+                }
+            )
         }
     }
 }
