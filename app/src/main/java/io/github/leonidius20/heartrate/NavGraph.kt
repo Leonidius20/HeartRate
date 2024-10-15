@@ -21,10 +21,18 @@ fun NavGraph() {
                 })
         }
         composable("homepage") {
-            HomeScreen()
+            HomeScreen(
+                onNavigateToMeasurement = {
+                    navController.navigate("measure")
+                }
+            )
         }
         composable("measure") {
-            MeasureScreen()
+            MeasureScreen(
+                backToHomePage = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
