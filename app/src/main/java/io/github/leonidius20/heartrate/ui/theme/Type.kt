@@ -64,3 +64,11 @@ val heartRateTextStyle = TextStyle(
     textAlign = TextAlign.Center,
     color = Color.White,
 )
+
+val appNameTextStyle = TextStyle(
+    fontFamily = rubik,
+    fontWeight = FontWeight.Bold,
+    fontSize = 51.sp,
+    textAlign = TextAlign.Center,
+    color = Color.Black,
+)
