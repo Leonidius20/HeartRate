@@ -1,11 +1,14 @@
 package io.github.leonidius20.heartrate.ui.splash
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,7 +50,7 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         repeat(10) { iteration ->
             progress = iteration / 9f
-            delay(100)
+            delay(200)
         }
 
         onAnimationFinished()
@@ -98,7 +101,7 @@ fun ProgressBar(
 ) {
     val progressBarShape = RoundedCornerShape(7.dp)
 
-    Box(
+    BoxWithConstraints(
         modifier
             .fillMaxWidth()
             .height(14.dp)
@@ -106,19 +109,23 @@ fun ProgressBar(
             .background(Color(0xFFFFACAC))
             .border(1.dp, Color(0xFFFF4B4B), progressBarShape),
     ) {
+        val scope = this
+        val maxLength = scope.maxWidth
+        val length by animateDpAsState(maxLength * progress())
+
         // filled portion
         Canvas(
             Modifier
                 .fillMaxWidth()
                 .height(14.dp)
         ) {
-            val maxLength = size.width
-            val length = maxLength * progress()
+            // val maxLength = size.width
+
 
             drawRoundRect(
                 color = Color(0xFFFF6B6B),
                 cornerRadius = CornerRadius(x = 7.dp.toPx(), y = 7.dp.toPx()),
-                size = size.copy(width = length)
+                size = size.copy(width = length.toPx())
             )
         }
 
@@ -127,6 +134,7 @@ fun ProgressBar(
         Text(
             modifier = Modifier.align(Alignment.Center),
             text = "$progressPercent%",
+            lineHeight = 8.sp,
             fontSize = 8.sp,
             color = Color.White,
         )
