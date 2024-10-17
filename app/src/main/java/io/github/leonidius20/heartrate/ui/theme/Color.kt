@@ -14,3 +14,7 @@ val bgCircleColor = Color(0xFFB2DEFB)
 val btnColor = Color(0xFFFF6B6B)
 
 val topBarColor = Color(0xFFFF6B6B)
+
+val heartRateSlowed = Color(0xFF55ADFF)
+val heartRateNormal = Color(0xFF1CE4B5)
+val heartRateFast = Color(0xFFFF5B5B)

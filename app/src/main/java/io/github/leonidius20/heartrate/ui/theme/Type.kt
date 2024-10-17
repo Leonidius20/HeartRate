@@ -40,7 +40,8 @@ val Typography = Typography(
 val rubik = FontFamily(
     Font(R.font.rubik_regular, FontWeight.Normal),
     Font(R.font.rubik_semi_bold, FontWeight.SemiBold),
-    Font(R.font.rubik_bold, FontWeight.Bold),
+    Font(R.font.rubik_bold, FontWeight.Bold), // W700
+    Font(R.font.rubik_medium, FontWeight.Medium), // W500
 )
 
 val onboardingTitle = TextStyle(
@@ -71,4 +72,17 @@ val appNameTextStyle = TextStyle(
     fontSize = 51.sp,
     textAlign = TextAlign.Center,
     color = Color.Black,
+)
+
+val resultTitleTextStyle = TextStyle(
+    fontFamily = rubik,
+    fontWeight = FontWeight.Medium,
+    fontSize = 22.sp,
+    color = Color.Black,
+)
+
+val resultTypeTextStyle = TextStyle(
+    fontFamily = rubik,
+    fontWeight = FontWeight.Bold,
+    fontSize = 28.sp,
 )
