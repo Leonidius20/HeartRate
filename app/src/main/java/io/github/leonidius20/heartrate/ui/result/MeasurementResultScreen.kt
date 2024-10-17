@@ -1,7 +1,8 @@
 package io.github.leonidius20.heartrate.ui.result
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -29,27 +31,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester.Companion.createRefs
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.leonidius20.heartrate.data.measurements.MeasurementEntity
 import io.github.leonidius20.heartrate.ui.common.BoxWithCircleBackground
+import io.github.leonidius20.heartrate.ui.measure.dpToPx
 import io.github.leonidius20.heartrate.ui.theme.btnColor
 import io.github.leonidius20.heartrate.ui.theme.heartRateFast
 import io.github.leonidius20.heartrate.ui.theme.heartRateNormal
 import io.github.leonidius20.heartrate.ui.theme.heartRateSlowed
 import io.github.leonidius20.heartrate.ui.theme.resultTitleTextStyle
 import io.github.leonidius20.heartrate.ui.theme.resultTypeTextStyle
+import io.github.leonidius20.heartrate.ui.theme.rubik
 import io.github.leonidius20.heartrate.ui.theme.topBarColor
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -79,8 +86,7 @@ private fun MeasurementResultScreen(
 ) {
     Scaffold(
         modifier = Modifier
-            .fillMaxSize()
-        ,
+            .fillMaxSize(),
         topBar = {
             TopAppBar(
                 actions = {
@@ -213,7 +219,7 @@ private fun ResultCard(
                 }
             )
 
-            val (resultTypeStr, color) = when(bpm) {
+            val (resultTypeStr, color) = when (bpm) {
                 in 0 until 60 -> "Slowed" to heartRateSlowed
                 in 60..100 -> "Normal" to heartRateNormal
                 in 100 until Int.MAX_VALUE -> "Sped up" to heartRateFast
@@ -237,6 +243,15 @@ private fun ResultCard(
                     end.linkTo(parent.end)
                     top.linkTo(resultType.bottom, margin = 8.dp)
                 }
+            )
+
+            ReferenceValuesList(
+                modifier = Modifier.constrainAs(referenceValuesList) {
+                    top.linkTo(resultBar.bottom, margin = 8.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                bpm = bpm,
             )
 
         }
@@ -296,5 +311,113 @@ private fun BpmValueBar(
                 )
             }
         }
+
+        val measuredBpmCoordinate = when (bpm) {
+            in 0 until 60 -> (bpm / 60f) * thirdOfWidth.dpToPx()
+            in 60..100 -> thirdOfWidth.dpToPx() + (bpm / (100 - 60)) * (thirdOfWidth.dpToPx())
+            in 100 until Int.MAX_VALUE -> ((2 * thirdOfWidth.dpToPx()) + (bpm / 60) * (thirdOfWidth.dpToPx())).coerceAtMost(
+                thirdOfWidth.dpToPx() * 3
+            )
+
+            else -> 0f
+        }
+
+        val pillWidth = 5.dp
+
+        /* RoundRect(
+             left = measuredBpmCoordinate - (pillWidth.dpToPx() / 2),
+             top = 0f,
+             bottom = 19.dp.dpToPx(),
+             right = measuredBpmCoordinate + (pillWidth.dpToPx() / 2),
+             cornerRadius = CornerRadius.Zero.copy(x = 8.dp.dpToPx(), y = 8.dp.dpToPx()),
+
+         )*/
+    }
+}
+
+@Composable
+private fun ReferenceValuesList(
+    modifier: Modifier = Modifier,
+    bpm: Int,
+) {
+    val activeRange = when(bpm) {
+        in 0 until 60 -> 1
+        in 60..100 -> 2
+        in 100 until Int.MAX_VALUE -> 3
+        else -> -1
+    }
+
+    Column(modifier.fillMaxWidth()) {
+        ReferenceValue(
+            title = "Slowed",
+            color = heartRateSlowed,
+            rangeText = "<60 BPM",
+            isActive = activeRange == 1,
+        )
+        ReferenceValue(
+            title = "Normal",
+            color = heartRateNormal,
+            rangeText = "60-100 BPM",
+            isActive = activeRange == 2,
+        )
+        ReferenceValue(
+            title = "Too Fast",
+            color = heartRateFast,
+            rangeText = ">100 BPM",
+            isActive = activeRange == 3,
+        )
+    }
+}
+
+@Composable
+private fun ReferenceValue(
+    modifier: Modifier = Modifier,
+    title: String,
+    color: Color,
+    rangeText: String,
+    isActive: Boolean,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            modifier = Modifier
+                .background(Color(0xFFB2DEFB))
+                .width(122.dp)
+                .height(20.dp)
+                .clip(RoundedCornerShape(size = 4.dp)),
+        ) {
+            Canvas(
+                modifier = Modifier
+                    .size(8.dp)
+                    .align(Alignment.CenterVertically)
+                    .padding(start = 8.dp, end = 8.dp)
+            ) {
+                drawCircle(
+                    color = color,
+                    radius = 4.dp.toPx(),
+                )
+            }
+
+            Text(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(start = 8.dp),
+                text = title,
+                fontFamily = rubik,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+            )
+        }
+
+        Text(
+            modifier = Modifier.align(Alignment.CenterVertically),
+            fontFamily = rubik,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            text = rangeText,
+            color = if (isActive) Color.Black else Color(0xFFA1A9AF),
+        )
     }
 }
